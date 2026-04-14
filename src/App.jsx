@@ -28,7 +28,8 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function App() {
-  const saved = JSON.parse(localStorage.getItem("sp500-settings") || "{}");
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem("sp500-settings") || "{}"); } catch {}
   const [years, setYears] = useState(saved.years ?? 20);
   const [monthly, setMonthly] = useState(saved.monthly ?? 200);
   const [initial, setInitial] = useState(saved.initial ?? 1000);
@@ -60,7 +61,7 @@ export default function App() {
   const final = data[data.length - 1];
   const totalInvested = final.invested;
   const totalValue = final.total;
-  const gainsPct = totalInvested > 0 ? (((totalValue - totalInvested) / totalInvested) * 100).toFixed(0) : 0;
+  const gainsPct = totalInvested > 0 ? Math.round(((totalValue - totalInvested) / totalInvested) * 100) : 0;
 
   return (
     <div style={{
@@ -147,7 +148,7 @@ export default function App() {
           <div className="stat-card">
             <div style={{ color: "#555", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Печалба</div>
             <div style={{ fontFamily: "'Times New Roman', serif", fontSize: 22, fontWeight: 700, color: "#4ade80" }}>
-              {fmt(final.gains)} <span style={{ fontSize: 13, color: "#555" }}>+{gainsPct}%</span>
+              {fmt(final.gains)} <span style={{ fontSize: 13, color: "#555" }}>{gainsPct >= 0 ? "+" : ""}{gainsPct}%</span>
             </div>
           </div>
         </div>
