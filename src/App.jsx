@@ -34,6 +34,7 @@ export default function App() {
   const [monthly, setMonthly] = useState(saved.monthly ?? 200);
   const [initial, setInitial] = useState(saved.initial ?? 1000);
   const [rate, setRate] = useState(saved.rate ?? 10.5);
+  const [profitYear, setProfitYear] = useState(saved.years ?? 20);
 
   const persist = (patch) =>
     localStorage.setItem("sp500-settings", JSON.stringify({ years, monthly, initial, rate, ...patch }));
@@ -62,6 +63,12 @@ export default function App() {
   const totalInvested = final.invested;
   const totalValue = final.total;
   const gainsPct = totalInvested > 0 ? Math.round(((totalValue - totalInvested) / totalInvested) * 100) : 0;
+
+  // Clamp profitYear to the current investment period
+  const clampedYear = Math.min(profitYear, years);
+  const monthlyProfit = clampedYear === 0
+    ? 0
+    : Math.round((data[clampedYear].gains - data[clampedYear - 1].gains) / 12);
 
   return (
     <div style={{
@@ -208,6 +215,40 @@ export default function App() {
           <div>
             <div style={{ color: "#888", fontSize: 11, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Начална сума (€)</div>
             <input type="number" min={0} value={initial} onChange={(e) => { const v = Math.max(0, +e.target.value); setInitial(v); persist({ initial: v }); }} />
+          </div>
+        </div>
+
+        {/* Monthly profit section */}
+        <div style={{ marginTop: 32, background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 10, padding: "20px 24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20, flexWrap: "wrap", gap: 8 }}>
+            <div>
+              <div style={{ color: "#555", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>
+                Средна месечна печалба
+              </div>
+              <div style={{ fontFamily: "'Times New Roman', serif", fontSize: 28, fontWeight: 700, color: "#4ade80" }}>
+                {fmt(monthlyProfit)}
+              </div>
+            </div>
+            <div style={{ color: "#444", fontSize: 11, paddingBottom: 4 }}>
+              за година {clampedYear === 0 ? "0 (начален момент)" : clampedYear}
+            </div>
+          </div>
+
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+              <span style={{ color: "#888", fontSize: 11, letterSpacing: 2, textTransform: "uppercase" }}>Година</span>
+              <span style={{ color: "#e8ff5a", fontWeight: 500, fontSize: 14 }}>{clampedYear} г.</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={years}
+              value={clampedYear}
+              onChange={(e) => setProfitYear(+e.target.value)}
+            />
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, color: "#333", fontSize: 10 }}>
+              <span>0</span><span>{years}</span>
+            </div>
           </div>
         </div>
 
