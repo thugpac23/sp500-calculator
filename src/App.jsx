@@ -66,8 +66,9 @@ export default function App() {
   const clampedYear = Math.min(selectedYear, years);
   const monthlyProfit = useMemo(() => {
     if (clampedYear < 1) return 0;
-    return Math.round((data[clampedYear].total - data[clampedYear - 1].total) / 12);
-  }, [data, clampedYear]);
+    const yearlyGain = data[clampedYear].total - data[clampedYear - 1].total - monthly * 12;
+    return Math.round(yearlyGain / 12);
+  }, [data, clampedYear, monthly]);
 
   return (
     <div style={{
