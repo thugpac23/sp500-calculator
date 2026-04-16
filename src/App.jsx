@@ -33,6 +33,7 @@ export default function App() {
   const [monthly, setMonthly] = useState(saved.monthly ?? 200);
   const [initial, setInitial] = useState(saved.initial ?? 1000);
   const [rate, setRate] = useState(saved.rate ?? 10.5);
+  const [selectedYear, setSelectedYear] = useState(saved.years ?? 20);
 
   const persist = (patch) =>
     localStorage.setItem("sp500-settings", JSON.stringify({ years, monthly, initial, rate, ...patch }));
@@ -61,6 +62,12 @@ export default function App() {
   const totalInvested = final.invested;
   const totalValue = final.total;
   const gainsPct = totalInvested > 0 ? (((totalValue - totalInvested) / totalInvested) * 100).toFixed(0) : 0;
+
+  const clampedYear = Math.min(selectedYear, years);
+  const monthlyProfit = useMemo(() => {
+    if (clampedYear < 1) return 0;
+    return Math.round((data[clampedYear].total - data[clampedYear - 1].total) / 12);
+  }, [data, clampedYear]);
 
   return (
     <div style={{
@@ -182,7 +189,7 @@ export default function App() {
               <span style={{ color: "#888", fontSize: 11, letterSpacing: 2, textTransform: "uppercase" }}>Години</span>
               <span style={{ color: "#e8ff5a", fontWeight: 500, fontSize: 14 }}>{years} г.</span>
             </div>
-            <input type="range" min={1} max={50} value={years} onChange={(e) => { setYears(+e.target.value); persist({ years: +e.target.value }); }} />
+            <input type="range" min={1} max={50} value={years} onChange={(e) => { const y = +e.target.value; setYears(y); setSelectedYear(prev => Math.min(prev, y)); persist({ years: y }); }} />
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, color: "#333", fontSize: 10 }}>
               <span>1</span><span>50</span>
             </div>
@@ -207,6 +214,33 @@ export default function App() {
           <div>
             <div style={{ color: "#888", fontSize: 11, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Начална сума (€)</div>
             <input type="number" min={0} value={initial} onChange={(e) => { const v = Math.max(0, +e.target.value); setInitial(v); persist({ initial: v }); }} />
+          </div>
+        </div>
+
+        {/* Monthly Profit Section */}
+        <div style={{ marginTop: 32, background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 10, padding: "20px 24px" }}>
+          <div style={{ marginBottom: 4, color: "#555", fontSize: 11, letterSpacing: 3, textTransform: "uppercase" }}>
+            Месечна печалба по година
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 20 }}>
+            <span style={{ fontFamily: "'Times New Roman', serif", fontSize: 28, fontWeight: 700, color: "#4ade80" }}>
+              {fmt(monthlyProfit)}
+            </span>
+            <span style={{ color: "#555", fontSize: 12 }}>средна месечна печалба за година {clampedYear}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={{ color: "#888", fontSize: 11, letterSpacing: 2, textTransform: "uppercase" }}>Година</span>
+            <span style={{ color: "#e8ff5a", fontWeight: 500, fontSize: 14 }}>{clampedYear} г.</span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={years}
+            value={clampedYear}
+            onChange={(e) => setSelectedYear(+e.target.value)}
+          />
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, color: "#333", fontSize: 10 }}>
+            <span>1</span><span>{years}</span>
           </div>
         </div>
 
