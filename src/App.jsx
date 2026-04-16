@@ -6,6 +6,12 @@ const fmt = (n) =>
     ? `${(n / 1_000_000).toFixed(2)}M €`
     : `${Math.round(n).toLocaleString("bg-BG")} €`;
 
+const readSettings = () => {
+  try { return JSON.parse(localStorage.getItem("sp500-settings") || "{}"); } catch { return {}; }
+};
+
+const cardLabelStyle = { color: "#555", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 };
+
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
@@ -28,13 +34,11 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function App() {
-  let saved = {};
-  try { saved = JSON.parse(localStorage.getItem("sp500-settings") || "{}"); } catch {}
-  const [years, setYears] = useState(saved.years ?? 20);
-  const [monthly, setMonthly] = useState(saved.monthly ?? 200);
-  const [initial, setInitial] = useState(saved.initial ?? 1000);
-  const [rate, setRate] = useState(saved.rate ?? 10.5);
-  const [profitYear, setProfitYear] = useState(saved.years ?? 20);
+  const [years, setYears] = useState(() => readSettings().years ?? 20);
+  const [monthly, setMonthly] = useState(() => readSettings().monthly ?? 200);
+  const [initial, setInitial] = useState(() => readSettings().initial ?? 1000);
+  const [rate, setRate] = useState(() => readSettings().rate ?? 10.5);
+  const [profitYear, setProfitYear] = useState(() => readSettings().years ?? 20);
 
   const persist = (patch) =>
     localStorage.setItem("sp500-settings", JSON.stringify({ years, monthly, initial, rate, ...patch }));
@@ -64,7 +68,6 @@ export default function App() {
   const totalValue = final.total;
   const gainsPct = totalInvested > 0 ? Math.round(((totalValue - totalInvested) / totalInvested) * 100) : 0;
 
-  // Clamp profitYear to the current investment period
   const clampedYear = Math.min(profitYear, years);
   const monthlyProfit = clampedYear === 0
     ? 0
@@ -145,15 +148,15 @@ export default function App() {
         {/* Stat cards */}
         <div style={{ display: "flex", gap: 12, marginBottom: 32, flexWrap: "wrap" }}>
           <div className="stat-card">
-            <div style={{ color: "#555", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Крайна стойност</div>
+            <div style={cardLabelStyle}>Крайна стойност</div>
             <div style={{ fontFamily: "'Times New Roman', serif", fontSize: 22, fontWeight: 700, color: "#e8ff5a" }}>{fmt(totalValue)}</div>
           </div>
           <div className="stat-card">
-            <div style={{ color: "#555", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Общо вложено</div>
+            <div style={cardLabelStyle}>Общо вложено</div>
             <div style={{ fontFamily: "'Times New Roman', serif", fontSize: 22, fontWeight: 700 }}>{fmt(totalInvested)}</div>
           </div>
           <div className="stat-card">
-            <div style={{ color: "#555", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>Печалба</div>
+            <div style={cardLabelStyle}>Печалба</div>
             <div style={{ fontFamily: "'Times New Roman', serif", fontSize: 22, fontWeight: 700, color: "#4ade80" }}>
               {fmt(final.gains)} <span style={{ fontSize: 13, color: "#555" }}>{gainsPct >= 0 ? "+" : ""}{gainsPct}%</span>
             </div>
@@ -222,7 +225,7 @@ export default function App() {
         <div style={{ marginTop: 32, background: "#0d0d0d", border: "1px solid #1a1a1a", borderRadius: 10, padding: "20px 24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20, flexWrap: "wrap", gap: 8 }}>
             <div>
-              <div style={{ color: "#555", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>
+              <div style={cardLabelStyle}>
                 Средна месечна печалба
               </div>
               <div style={{ fontFamily: "'Times New Roman', serif", fontSize: 28, fontWeight: 700, color: "#4ade80" }}>
